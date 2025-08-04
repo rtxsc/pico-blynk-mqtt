@@ -27,11 +27,15 @@ Set your WiFi and [Blynk device credentials](https://docs.blynk.io/en/getting-st
 
 ## 3. Install required libraries
 
-Make sure your board is **connected via USB**. It should **not** be opened by any serial monitor. without any board connected, you would see **mpremote: no device found** error.
+Make sure your board is `**connected via USB**`. It should **not** be opened by any serial monitor. without any board connected, you would see `**mpremote: no device found**` error.
 
 Run these commands on your development machine (Terminal on macOS):
 
 ```sh
+# Download via git clone or Download zip
+git clone https://github.com/rtxsc/pico-blynk-mqtt.git
+# Navigate to the cloned folder
+cd Downloads/pico-blynk-mqtt-main/
 # Install mpremote utility
 pip3 install --upgrade mpremote
 # Install libraries
