@@ -41,6 +41,8 @@ async def publisher_task():
         await asyncio.sleep_ms(push_interval_hour*3600*1000)
     
 def mqtt_connected():
+    global anomaly_count
+    anomaly_count = 0 # reset upon reconnection after network hiccup
     print("[main] MQTT connected")
     device.connected()
 
