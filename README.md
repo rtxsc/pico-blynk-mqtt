@@ -1,11 +1,14 @@
 
 # Blynk MQTT client for MicroPython
-### pico-blynk-mqtt
-Repo for my work on Raspberry Pi Pico W / 2W with Blynk MQTT via MicroPython
+#### Repo for my work on Raspberry Pi Pico W / 2W with Blynk MQTT via MicroPython
 ---
 This example was verified to work with `MicroPython v1.25.0` on:
 - `Raspberry Pi Pico W` (RP2040)
 - `Raspberry Pi Pico 2W` (RP2350)
+
+Features added to the the logic (4 Aug 2025 Mon):
+- `Intelligent WiFi network monitoring via async socket poll`
+- `Offline mode in case of prolonged network downtime`
 
 ## Prepare your Device in Blynk.Cloud
 
@@ -27,15 +30,20 @@ Set your WiFi and [Blynk device credentials](https://docs.blynk.io/en/getting-st
 
 ## 3. Install required libraries
 
-Make sure your board is `**connected via USB**`. It should **not** be opened by any serial monitor. without any board connected, you would see `**mpremote: no device found**` error.
+Make sure your board is `connected via USB`. It should **not** be opened by any serial monitor. without any board connected, you would see `mpremote: no device found` error.
 
 Run these commands on your development machine (Terminal on macOS):
 
 ```sh
-# Download via git clone or Download zip
+# Obtain via git clone 
 git clone https://github.com/rtxsc/pico-blynk-mqtt.git
-# Navigate to the cloned folder
+# Navigate to the cloned folder (under home directory)
+cd pico-blynk-mqtt-main/
+
+# Obtain via Download zip
+# Navigate to the Download folder
 cd Downloads/pico-blynk-mqtt-main/
+
 # Install mpremote utility
 pip3 install --upgrade mpremote
 # Install libraries
