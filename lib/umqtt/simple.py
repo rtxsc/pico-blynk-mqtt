@@ -1,8 +1,3 @@
-# SPDX-FileCopyrightText: 2025 ClumzyaziD for Robotronix Inc.
-"""
-Added useful network feature:
-4 August 2025 Monday - check_socket function
-"""
 import socket, struct, sys
 from binascii import hexlify
 
@@ -69,21 +64,6 @@ class MQTTClient:
         self.lw_msg = msg
         self.lw_qos = qos
         self.lw_retain = retain
-        
-    def check_socket(self, sock_test = None):
-        try:
-            if sock_test is None:
-                sock_test = socket.socket()
-            self.sock_test = sock_test
-            addr = socket.getaddrinfo(self.server, self.port)[0][-1]
-            self.sock_test.connect(addr)
-            # print("OK connected to blynk.cloud server")
-            self.sock_test.close()
-            return True
-        except OSError as e:
-            # print("Network connectivity test failed:", e)
-            raise 
-
 
     def connect(self, clean_session=True, sock=None):
         if sock is None:
@@ -229,7 +209,6 @@ class MQTTClient:
             pid = pid[0] << 8 | pid[1]
             sz -= 2
         msg = self.sock.read(sz)
-
         try:
             self.cb(topic, msg)
         except Exception as e:

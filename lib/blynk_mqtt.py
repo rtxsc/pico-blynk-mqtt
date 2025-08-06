@@ -7,7 +7,8 @@
 
 import gc, sys, time, machine, json, asyncio
 import config
-from umqtt.simple import MQTTClient, MQTTException
+from umqtt.simple import MQTTClient, MQTTException 
+import socket
 
 def _dummy(*args):
     pass
@@ -15,8 +16,8 @@ def _dummy(*args):
 on_connected = _dummy
 on_disconnected = _dummy
 on_message = _dummy
-firmware_version = "4.8.2025"
-firmware_datetime = "Monday 4 Aug 2025"
+firmware_version = "6.8.2025"
+firmware_datetime = "Wed 6 Aug 2025" # polished socket_check_task 
 
 connected = False # change to global Mon 4 Aug 2025 22:39PM
 
@@ -25,7 +26,7 @@ LOGO = r"""
      / _ )/ /_ _____  / /__
     / _  / / // / _ \/  '_/
    /____/_/\_, /_//_/_/\_\
-          /___/ RTXSC MicroPython for {} | v{} | Updated {}
+          /___/ MQTT MicroPython for {} | v{} | Updated {}
 """.format(sys.platform, firmware_version, firmware_datetime)
 
 print(LOGO)
@@ -101,16 +102,22 @@ async def _mqtt_connect():
 async def socket_check_task():
     global connected
     while True:
-        try:
             await asyncio.sleep_ms(5000)
             gc.collect()
-            mqtt.check_socket() 
-        except Exception as e:
-            connected = False
             try:
-                on_disconnected()
-            except Exception as e:
-                sys.print_exception(e)
+                sock_test = socket.socket()
+                addr = socket.getaddrinfo(config.BLYNK_MQTT_BROKER, 8883 if ssl_ctx else 1883)[0][-1]
+                sock_test.connect(addr)
+                # print("[blynk_mqtt] OK connected to blynk.cloud server")
+                sock_test.close()
+            except OSError as e:
+                # sys.print_exception(e)
+                # print("[blynk_mqtt] Network connectivity test failed:", e)
+                connected = False
+                try:
+                    on_disconnected()
+                except Exception as e:
+                    sys.print_exception(e)
         
 async def task():
     global connected
@@ -127,7 +134,7 @@ async def task():
                     print("[blynk_mqtt] MQTT connected")
                 else:
                     connected = False
-                    print("Waiting for WLAN/4G/5G network...")
+                    print("[blynk_mqtt] Waiting for WLAN/4G/5G network...")
                     await asyncio.sleep(1)
 
             except Exception as e:
