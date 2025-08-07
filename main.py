@@ -83,24 +83,18 @@ def connect_wifi():
             print(".", end="")
             max_wait -= 1
             if wlan.status() == network.STAT_NO_AP_FOUND:
-                raise Exception("WiFi Access Point not found")
+                print("WiFi Access Point not found")
             if wlan.status() == network.STAT_WRONG_PASSWORD:
-                raise Exception("Wrong WiFi credentials")
+                print("Wrong WiFi credentials")
             if wlan.status() == network.STAT_IDLE:
-                raise Exception("no connection and no activity")
+                print("no connection and no activity")
             if wlan.status() == network.STAT_CONNECT_FAIL:
-                raise Exception("failed due to other problems")
-            
-            # these two cannot be active during deployment
-            # only permissible via thonny execution (run via play button)
-            # discovered 12:30AM Thu 31 July at TBS
-            # changed to print instead of raise
-            
-#             if wlan.status() == network.STAT_CONNECTING:
-#                 print("connecting in progress")
-#             if wlan.status() == network.STAT_GOT_IP:
-#                 print("connection successful")
-             
+                print("failed due to other problems")
+            if wlan.status() == network.STAT_CONNECTING:
+                print("connecting in progress")
+            if wlan.status() == network.STAT_GOT_IP:
+                print("connection successful")
+
         print("[main] OK:", wlan.ifconfig()[0])
 
     else:
