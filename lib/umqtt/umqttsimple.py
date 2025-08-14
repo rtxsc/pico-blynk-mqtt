@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2025 ClumzyaziD for Robotronix Inc.
 """
 MicroPython-lib Version (modified to match Blynk version) 6 Aug 2025 Wed
-
 """
 import socket, struct, sys
 from binascii import hexlify
+import time
 
 class MQTTException(Exception):
     pass
@@ -72,8 +72,10 @@ class MQTTClient:
         self.lw_qos = qos
         self.lw_retain = retain
 
-    def connect(self, clean_session=True, timeout=None):
-        self.sock = socket.socket()
+    def connect(self, clean_session=True, timeout=None, sock=None):
+        if sock is None:
+            sock = socket.socket()
+        self.sock = sock
         self.sock.settimeout(timeout)
         addr = socket.getaddrinfo(self.server, self.port)[0][-1]
         self.sock.connect(addr)
@@ -132,7 +134,17 @@ class MQTTClient:
         self.sock = None
 
     def ping(self):
+        print("[simple] Sending PINGREQ")
         self.sock.write(b"\xc0\0")
+        res = None
+        stamp = time.ticks_ms()
+        timeout = self.keepalive * 1000
+        while res != b"\xd0":
+            res = self.check_msg() # discovered 02:55 14 Aug 2025 home
+            if time.ticks_diff(time.ticks_ms(), stamp) > timeout:
+                raise Exception("PINGRESP not received from broker within timeout")
+        print("[simple] Returning ping response")
+        return res
 
     def publish(self, topic, msg, retain=False, qos=0):
         topic = _raw(topic)
@@ -177,7 +189,7 @@ class MQTTClient:
         topic = _raw(topic)
         pkt = bytearray(b"\x82\0\0\0")
         # self.pid += 1 # micropython-lib version
-        self.pid = (self.pid % 0xFFFF) + 1
+        self.pid = (self.pid % 0xFFFF) + 1 #blynk version
         struct.pack_into("!BH", pkt, 1, 2 + 2 + len(topic) + 1, self.pid)
         # print(hex(len(pkt)), hexlify(pkt, ":"))
         self.sock.write(pkt)
@@ -197,6 +209,7 @@ class MQTTClient:
     # Subscribed messages are delivered to a callback previously
     # set by .set_callback() method. Other (internal) MQTT
     # messages processed internally.
+    # returns None 99.9% of the time when there is no interaction
     def wait_msg(self):
         res = self.sock.read(1)
         self.sock.setblocking(True)
@@ -205,9 +218,10 @@ class MQTTClient:
         if res == b"":
             raise OSError(-1)
         if res == b"\xd0":  # PINGRESP
+            print("[simple] Got PINGRESP")
             sz = self.sock.read(1)[0]
             assert sz == 0
-            return None
+            return res
         op = res[0]
         if op & 0xF0 != 0x30:
             return op
