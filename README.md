@@ -2,17 +2,21 @@
 # Blynk MQTT client for MicroPython
 #### Repo for my work on Raspberry Pi Pico W / 2W with Blynk MQTT via MicroPython
 ---
-This example was verified to work with `MicroPython v1.25.0` on:
+This example was verified to work with `MicroPython v1.25.0 RPI_PICO_W-20250415-v1.25.0.uf2` on:
 - `Raspberry Pi Pico W` (RP2040)
 - `Raspberry Pi Pico 2W` (RP2350)
 
 Features added to the the logic (4 Aug 2025 Mon):
 - `Intelligent WiFi network monitoring via async socket poll`
 - `Offline mode in case of prolonged network downtime`
+Features added to the the logic (13 Aug 2025 Wed):
+- `Robust network problem handler via PINGREQ/PINGRESP`
+- `Fixed reconnection logic - polished blynk_mqtt and umqttsimple`
 
 ## Prepare your Device in Blynk.Cloud
 
-1. Create Blynk template based on the provided blueprint. Click the **`Use Blueprint`** button in [`MQTT Air Cooler/Heater Demo`](https://blynk.cloud/dashboard/blueprints/Library/TMPL4zGiS1A7l).
+1. Create Blynk template based on the provided blueprint. 
+Click the **`Use Blueprint`** button in [`MQTT Air Cooler/Heater Demo`](https://blynk.cloud/dashboard/blueprints/Library/TMPL4zGiS1A7l).
 2. In the left panel, select `Devices`
 3. Click `New Device` button
 4. Select `From Template -> MQTT Demo`, and click **`Create`**
@@ -35,20 +39,18 @@ Make sure your board is `connected via USB`. It should **not** be opened by any 
 Run these commands on your development machine (Terminal on macOS):
 
 ```sh
-# Obtain via git clone 
+# [Step 1] Obtain via git clone 
 git clone https://github.com/rtxsc/pico-blynk-mqtt.git
 # Navigate to the cloned folder (under home directory)
 cd pico-blynk-mqtt-main/
-
-# Obtain via Download zip
+# [Step 1] Alternative - Obtain via Download zip
 # Navigate to the Download folder
 cd Downloads/pico-blynk-mqtt-main/
-
-# Install mpremote utility
+# [Step 2] Install mpremote utility
 pip3 install --upgrade mpremote
-# Install libraries
+# [Step 3] Install libraries
 mpremote cp -r ./lib :
-# Copy the example files to the device
+# [Step 4] Copy the example files to the device
 mpremote cp *.py *.der :
 ```
 

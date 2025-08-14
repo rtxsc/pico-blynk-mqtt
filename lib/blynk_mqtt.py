@@ -16,10 +16,8 @@ def _dummy(*args):
 on_connected = _dummy
 on_disconnected = _dummy
 on_message = _dummy
-firmware_version = "6.8.2025"
-firmware_datetime = "Wed 6 Aug 2025" # polished socket_check_task 
-
-connected = False # change to global Mon 4 Aug 2025 22:39PM
+firmware_version = "13.8.2025"
+firmware_datetime = "Wed 13 Aug 2025"  
 
 LOGO = r"""
       ___  __          __
@@ -92,35 +90,16 @@ async def _mqtt_connect():
         }
         # Send info to the server
         # mqtt.publish("info/mcu", json.dumps(info)) # disabled 25 July 2025 Friday to save memory
-    
         on_connected()
         return True
     except Exception as e:
         # sys.print_exception(e) # when we got [Errno 103] ECONNABORTED
         return False
-
-async def socket_check_task():
-    global connected
-    while True:
-            await asyncio.sleep_ms(5000)
-            gc.collect()
-            try:
-                sock_test = socket.socket()
-                addr = socket.getaddrinfo(config.BLYNK_MQTT_BROKER, 8883 if ssl_ctx else 1883)[0][-1]
-                sock_test.connect(addr)
-                # print("[blynk_mqtt] OK connected to blynk.cloud server")
-                sock_test.close()
-            except OSError as e:
-                # sys.print_exception(e)
-                # print("[blynk_mqtt] Network connectivity test failed:", e)
-                connected = False
-                try:
-                    on_disconnected()
-                except Exception as e:
-                    sys.print_exception(e)
         
 async def task():
-    global connected
+    connected = False
+    start = time.ticks_ms()
+    stamp = time.ticks_ms() 
     while True:
         await asyncio.sleep_ms(10)
         if not connected:
@@ -134,6 +113,7 @@ async def task():
                     print("[blynk_mqtt] MQTT connected")
                 else:
                     connected = False
+                    on_disconnected()
                     print("[blynk_mqtt] Waiting for WLAN/4G/5G network...")
                     await asyncio.sleep(1)
 
@@ -142,7 +122,7 @@ async def task():
                     print("Connection failed:", e)
                     await asyncio.sleep(1)
                 elif isinstance(e, AttributeError):
-                    print("Attribute Problem:", e)
+                    # print("Attribute Problem:", e)
                     pass  # This happens during reconnection
                 elif isinstance(e, MQTTException) and (e.value == 4 or e.value == 5):
                     print("Invalid BLYNK_AUTH_TOKEN")
@@ -152,6 +132,25 @@ async def task():
         else:
             try:
                 mqtt.check_msg()
+                if time.ticks_diff(time.ticks_ms(), start) > mqtt.keepalive * 1000:
+                    print("[blynk_mqtt] KeepAlive period elapsed - requesting a PINGRESP")
+                    pingresp = mqtt.ping()
+                    timeout = mqtt.keepalive * 1000
+                    while 1:
+                        if pingresp is None :
+                             if time.ticks_diff(time.ticks_ms(), stamp) > timeout:
+                                # no PINGRESP packet received from broker after timeout
+                                # let the task automagically performs the reconnection ritual
+                                connected = False
+                                try:
+                                    on_disconnected()
+                                except Exception as e:
+                                    sys.print_exception(e) 
+                        else:
+                            # print("Got PINGRESP:", pingresp)
+                            break
+                    start = time.ticks_ms()
+                    stamp = time.ticks_ms()  
             except Exception as e:
                 #sys.print_exception(e)
                 connected = False

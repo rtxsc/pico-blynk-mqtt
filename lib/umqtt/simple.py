@@ -1,5 +1,7 @@
+# Wed 13 Aug 2025 - PINGREQ/PINGRESP logic - Done 14 Aug 02:55AM HOME
 import socket, struct, sys
 from binascii import hexlify
+import time
 
 class MQTTException(Exception):
     pass
@@ -122,7 +124,17 @@ class MQTTClient:
         self.sock = None
 
     def ping(self):
+        print("[simple] Sending PINGREQ")
         self.sock.write(b"\xc0\0")
+        res = None
+        stamp = time.ticks_ms()
+        timeout = self.keepalive * 1000
+        while res != b"\xd0":
+            res = self.check_msg() 
+            if time.ticks_diff(time.ticks_ms(), stamp) > timeout:
+                raise Exception("PINGRESP not received from broker within timeout")
+        print("[simple] Returning ping response")
+        return res
 
     def publish(self, topic, msg, retain=False, qos=0):
         topic = _raw(topic)
@@ -193,9 +205,10 @@ class MQTTClient:
         if res == b"":
             raise OSError(-1)
         if res == b"\xd0":  # PINGRESP
+            print("[simple] Got PINGRESP")
             sz = self.sock.read(1)[0]
             assert sz == 0
-            return None
+            return res
         op = res[0]
         if op & 0xF0 != 0x30:
             return op
