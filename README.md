@@ -9,6 +9,7 @@ This example was verified to work with `MicroPython v1.25.0 RPI_PICO_W-20250415-
 Features added to the the logic (4 Aug 2025 Mon):
 - `Intelligent WiFi network monitoring via async socket poll`
 - `Offline mode in case of prolonged network downtime`
+
 Features added to the the logic (13 Aug 2025 Wed):
 - `Robust network problem handler via PINGREQ/PINGRESP`
 - `Fixed reconnection logic - polished blynk_mqtt and umqttsimple`
@@ -41,15 +42,20 @@ Run these commands on your development machine (Terminal on macOS):
 ```sh
 # [Step 1] Obtain via git clone 
 git clone https://github.com/rtxsc/pico-blynk-mqtt.git
+
 # Navigate to the cloned folder (under home directory)
 cd pico-blynk-mqtt-main/
+
 # [Step 1] Alternative - Obtain via Download zip
 # Navigate to the Download folder
 cd Downloads/pico-blynk-mqtt-main/
+
 # [Step 2] Install mpremote utility
 pip3 install --upgrade mpremote
+
 # [Step 3] Install libraries
 mpremote cp -r ./lib :
+
 # [Step 4] Copy the example files to the device
 mpremote cp *.py *.der :
 ```
